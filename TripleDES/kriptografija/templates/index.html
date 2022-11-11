@@ -1,0 +1,22 @@
+{% extends 'base.html' %}
+
+{% block content %}
+
+<h1>Šifrēt</h1>
+<form action="encrypt" method="POST">
+    {% csrf_token %}
+
+    Šifrējamais teksts: <input type="text" name="text"><br><br>
+    Atslēga: <input type="text" name="key1"><br><br>
+    <input type="submit">
+</form>
+<br><br><br><br><br>
+<h1>Atšifrēt</h1>
+<form action="decrypt" method="POST">
+    {% csrf_token %}
+
+    Teksts ko atšifrēt: <input type="text" name="crtext"><br><br>
+    Atslēga: <input type="text" name="key1"><br><br>
+    <input type="submit">
+</form>
+{% endblock %}
