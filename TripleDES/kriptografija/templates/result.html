@@ -2,8 +2,20 @@
 
 {% block content %}
 
-<h1> Rezultāts = {{result}} </h1>
+<style>
+    div {
+        font-family: "Courier New", Courier, monospace;
+    }
+</style>
 
+<h1> Rezultāts: </h1>
+<div>Teksts:&nbsp;{{text}}</div>
+<div>Atslēga:{{key}}</div>
+<div>Šifrēts:{{result}}</div>
 
+<h2> Bināri: </h2>
+<div>Teksts: &nbsp;&nbsp;{{textb}}</div>
+<div>Atslēga:&nbsp;&nbsp;{{keyb}}</div>
+<div>Rezultāts:{{resultb}}</div>
 
 {% endblock %}
