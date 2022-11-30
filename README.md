@@ -9,10 +9,13 @@ Vietne 3DES kriptogrāfijas algoritma izstrādei
 - [X] Viena raunda implementācija
 - [X] SBox
 - [X] Visu raundu implementācija
-- [ ] Dešifrēšana - 3DES
-- [ ] Ko var iznest no funkcijām, lai dekodējot mazāk koda
-- [ ] 2/3 atslēgas - 3DES
+- [X] Dešifrēšana
+- [ ] 2/3 atslēgas - 3DES - uztaisīt, lai ņem vērā papildus ierakstītās atslēgas, atkārtojot šibrēšanas ciklus. Ja ievadītas tikai 2 atslēgas, tad aprēķināt visas 3 atbilstoši dokumentēcijai.
 - [ ] Labāks UI
+- [ ] Programmas projektējuma apraksts
+- [ ] Realizācijas apraksts
+- [ ] Skaņošanas/testēšanas procesa apraksts
+- [ ] Prezentācija
 
 ## Iespējams nepieciešams sekojošs setup:
 Web daļa caur Django, līdz ar to instalācija (ieteiktu darīt izmantojot virtual environment venv vai ko līdzīgu)
@@ -30,3 +33,13 @@ atver web: http://127.0.0.1:8000/
 
 ## Koda atrašanās vieta
 \kriptografija\views.py
+
+
+## Izmantotie resursi
+1. FIPS PUB 46-3 DATA ENCRYPTION STANDARD (DES)
+2. Algoritms aprakstīts pa soļiem: https://page.math.tu-berlin.de/~kant/teaching/hess/krypto-ws2006/des.htm
+3. Kalkulators, kur attēlo starprezultātus, izmantots atkļūdošanai un testēšanai: http://lpb.canb.auug.org.au/adfa/src/DEScalc/
+
+
+
+

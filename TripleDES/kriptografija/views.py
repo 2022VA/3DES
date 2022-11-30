@@ -32,7 +32,7 @@ def encrypt(request):
     #key3b = bin(int(key3,16))
     #print (key1b)
     # Izsaucam DES algoritmu ar katru no atslēgām un iepriekšējo vai sākotnējo ievadu
-    res1b = des(textb, key1b)
+    res1b = des(textb, key1b, 0)
     tconv = str(res1b).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
@@ -42,16 +42,23 @@ def encrypt(request):
     #res2 = des(res1, key2)
     #res3 = des(res2, key3)
     
-    return render(request, 'result.html', {"textb": textb, "keyb": key1b, "text": text, "key": key1, "resultb": res1b, "result": res1})
+    return render(request, 'result.html', {"textb": textb, "keyb": key1b, "text": text, "key": key1, "resultb": res1b, "result": res1, "op": "Šifrēšana"})
 
 def decrypt(request):
     crtext = request.POST['crtext']
     key1 = request.POST['key1']
-    key2 = request.POST['key2']
-    key3 = request.POST['key3']
+    crtextb = np.asarray(list(map(int, format(int(crtext,16), '0>64b'))))
+    key1b = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
+    #key2 = request.POST['key2']
+    #key3 = request.POST['key3']
     # TODO šeit jāraksta kods
-    res = "Here is the decrypted block, with crypted text:" + crtext + " and key1:" + key1 + " and key2:" + key2+ " and key3:" + key3
-    return render(request, 'result.html', {"result": res})
+    res1b = des(crtextb, key1b, 1)
+    tconv = str(res1b).replace('[', '')
+    tconv = tconv.replace(']', '')
+    tconv = tconv.replace(' ', '')
+    tconv = tconv.replace('\n', '')
+    res1 = str(hex(int(tconv, 2))[2:])
+    return render(request, 'result.html', {"textb": crtextb, "keyb": key1b, "text": crtext, "key": key1, "resultb": res1b, "result": res1, "op": "Dešifrēšana"})
 
 # --------------------------- computations
 key_PC1 =  [57, 49, 41, 33, 25, 17,  9,
@@ -161,7 +168,7 @@ IPm1 = [40,  8, 48, 16, 56, 24, 64, 32,
         34,  2, 42, 10, 50, 18, 58, 26,
         33,  1, 41,  9, 49, 17, 57, 25]
 
-def des(text, key):
+def des(text, key, dir = 0):
     out = np.zeros(64, dtype=int)
     # create Key Permuted choice 1 using PC-1 and get from 64 bit key to 58 bits
     perm_key = permutate_key(key)
@@ -186,7 +193,10 @@ def des(text, key):
 
     for i in range(16):
         #print ("Round: ", i+1)
-        data_new = round(data, keys[i])
+        if (dir == 0): # encrypt
+            data_new = round(data, keys[i])
+        else: # decrypt
+            data_new = round(data, keys[16-(i+1)])
         data = data_new
         #print (i)
         #print (data)
