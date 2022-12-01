@@ -16,6 +16,7 @@ Vietne 3DES kriptogrāfijas algoritma izstrādei
 - [ ] Realizācijas apraksts
 - [ ] Skaņošanas/testēšanas procesa apraksts
 - [ ] Prezentācija
+- [/] Projektējums - fails : google drive : Projektejums_3DES_E_G_A_2022.docx
 
 ## Iespējams nepieciešams sekojošs setup:
 Web daļa caur Django, līdz ar to instalācija (ieteiktu darīt izmantojot virtual environment venv vai ko līdzīgu)
