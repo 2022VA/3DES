@@ -6,7 +6,7 @@ def index(request):
     return render(request, 'index.html')
 
 def encrypt(request):
-    text = request.POST['text']
+    original_text = request.POST['text']
     key1 = request.POST['key1']
     key2 = request.POST['key2']
     key3 = request.POST['key3']
@@ -22,43 +22,51 @@ def encrypt(request):
     #  Inverse initial permutation
 
     # Pārvēršam ievaddatus binārā formātā
-    #text = "0123456789ABCDEF"
-    #key1 = "133457799BBCDFF1"
-    #text = "675A69675E5A6B5A"
-    #key1 = "5B5A57676A56676E"
-    textb = np.asarray(list(map(int, format(int(text,16), '0>64b'))))
-    key1b = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
-    #key2b = bin(int(key2,16))
-    #key3b = bin(int(key3,16))
-    #print (key1b)
+    original_text_in_binary = np.asarray(list(map(int, format(int(original_text,16), '0>64b'))))
+    key1_in_binary = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
+    key2_in_binary = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
+    key3_in_binary = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
+
     # Izsaucam DES algoritmu ar katru no atslēgām un iepriekšējo vai sākotnējo ievadu
-    res1b = des(textb, key1b, 0)
-    tconv = str(res1b).replace('[', '')
+    text_encrypted_once_in_binary = des(original_text_in_binary, key1_in_binary, 0)
+    text_encrypted_twice_in_binary = des(text_encrypted_once_in_binary, key2_in_binary, 0)
+    text_encrypted_thrice_in_binary = des(text_encrypted_twice_in_binary, key3_in_binary, 0)
+    tconv = str(text_encrypted_thrice_in_binary).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    res1 = str(hex(int(tconv, 2))[2:])
-    #print (int(res1b,2))
-    #res2 = des(res1, key2)
-    #res3 = des(res2, key3)
-    
-    return render(request, 'result.html', {"textb": textb, "keyb": key1b, "text": text, "key": key1, "resultb": res1b, "result": res1, "op": "Šifrēšana"})
+    text_encrypted_once = str(hex(int(tconv, 2))[2:])
+
+    # Atgriežam rezultātus    
+    return render(request, 'result.html', {"textb": original_text_in_binary,
+    "keyb": key1_in_binary, 
+    "text": original_text, 
+    "key": key1,
+    "resultb": text_encrypted_once_in_binary, 
+    "result": text_encrypted_once, 
+    "op": "Šifrēšana"})
 
 def decrypt(request):
-    crtext = request.POST['crtext']
+    encrypted_text = request.POST['crtext']
     key1 = request.POST['key1']
-    crtextb = np.asarray(list(map(int, format(int(crtext,16), '0>64b'))))
-    key1b = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
-    #key2 = request.POST['key2']
-    #key3 = request.POST['key3']
+    key2 = request.POST['key2']
+    key3 = request.POST['key3']
+    encrypted_text_in_binary = np.asarray(list(map(int, format(int(encrypted_text,16), '0>64b'))))
+    key1_in_binary = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
+    key2_in_binary = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
+    key3_in_binary = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
+
     # TODO šeit jāraksta kods
-    res1b = des(crtextb, key1b, 1)
-    tconv = str(res1b).replace('[', '')
+    text_decrypted_once_in_binary = des(encrypted_text_in_binary, key3_in_binary, 1)
+    text_decrypted_twice_in_binary = des(text_decrypted_once_in_binary, key2_in_binary, 1)
+    text_decrypted_thrice_in_binary = des(text_decrypted_twice_in_binary, key1_in_binary, 1)
+
+    tconv = str(text_decrypted_thrice_in_binary).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    res1 = str(hex(int(tconv, 2))[2:])
-    return render(request, 'result.html', {"textb": crtextb, "keyb": key1b, "text": crtext, "key": key1, "resultb": res1b, "result": res1, "op": "Dešifrēšana"})
+    text_decrypted_once = str(hex(int(tconv, 2))[2:])
+    return render(request, 'result.html', {"textb": encrypted_text_in_binary, "keyb": key1_in_binary, "text": encrypted_text, "key": key1, "resultb": text_decrypted_once_in_binary, "result": text_decrypted_once, "op": "Dešifrēšana"})
 
 # --------------------------- computations
 key_PC1 =  [57, 49, 41, 33, 25, 17,  9,
