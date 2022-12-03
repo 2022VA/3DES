@@ -35,7 +35,7 @@ def encrypt(request):
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    text_encrypted_once = str(hex(int(tconv, 2))[2:])
+    text_encrypted_final_in_hex = str(hex(int(tconv, 2))[2:])
 
     # Atgriežam rezultātus    
     return render(request, 'result.html', {"textb": original_text_in_binary,
@@ -43,7 +43,7 @@ def encrypt(request):
     "text": original_text, 
     "key": key1,
     "resultb": text_encrypted_once_in_binary, 
-    "result": text_encrypted_once, 
+    "result": text_encrypted_final_in_hex, 
     "op": "Šifrēšana"})
 
 def decrypt(request):
@@ -65,8 +65,8 @@ def decrypt(request):
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    text_decrypted_once = str(hex(int(tconv, 2))[2:])
-    return render(request, 'result.html', {"textb": encrypted_text_in_binary, "keyb": key1_in_binary, "text": encrypted_text, "key": key1, "resultb": text_decrypted_once_in_binary, "result": text_decrypted_once, "op": "Dešifrēšana"})
+    text_decrypted_final_in_hex= str(hex(int(tconv, 2))[2:])
+    return render(request, 'result.html', {"textb": encrypted_text_in_binary, "keyb": key1_in_binary, "text": encrypted_text, "key": key1, "resultb": text_decrypted_once_in_binary, "result": text_decrypted_final_in_hex, "op": "Dešifrēšana"})
 
 # --------------------------- computations
 key_PC1 =  [57, 49, 41, 33, 25, 17,  9,
