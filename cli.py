@@ -1,73 +1,38 @@
-from django.shortcuts import render
 import numpy as np
+import sys
 
-# Create your views here.
-def index(request):
-    return render(request, 'index.html')
+def encrypt(original_text, key1):
 
-def encrypt(request):
-    original_text = request.POST['text']
-    key1 = request.POST['key1']
-    key2 = request.POST['key2']
-    key3 = request.POST['key3']
-    # TODO šeit jāraksta kods
-    # Repeat with Keys 1,2,3:
-    #  Create key 1-16 schedule & print
-    #  Initial permutation
-    #  Perform rounds 1-16, where
-    #   split data in half to leftN & rightN
-    #   left dataN1 = right dataN
-    #   right dataN1 = left tataN XOR function(right dataN, keyN)
-    #   function = expand, xor, sbox, permutate
-    #  Inverse initial permutation
+    original_text_in_bytes = np.asarray(list(map(int, format(int(original_text,16), '0>64b'))))
+    key1_in_bytes = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
 
-    # Pārvēršam ievaddatus binārā formātā
-    original_text_in_binary = np.asarray(list(map(int, format(int(original_text,16), '0>64b'))))
-    key1_in_binary = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
-    key2_in_binary = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
-    key3_in_binary = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
-
-    # Izsaucam DES algoritmu ar katru no atslēgām un iepriekšējo vai sākotnējo ievadu
-    text_encrypted_once_in_binary = des(original_text_in_binary, key1_in_binary, 0)
-    text_encrypted_twice_in_binary = des(text_encrypted_once_in_binary, key2_in_binary, 0)
-    text_encrypted_thrice_in_binary = des(text_encrypted_twice_in_binary, key3_in_binary, 0)
-    tconv = str(text_encrypted_thrice_in_binary).replace('[', '')
+    text_encrypted_once_in_bytes = des(original_text_in_bytes, key1_in_bytes, 0)
+    tconv = str(text_encrypted_once_in_bytes).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
     text_encrypted_final_in_hex = str(hex(int(tconv, 2))[2:])
+    print("results")
+    # Atgriežam rezultātus
+    print(text_encrypted_final_in_hex)
+    return text_encrypted_final_in_hex
 
-    # Atgriežam rezultātus    
-    return render(request, 'result.html', {"textb": original_text_in_binary,
-    "keyb": key1_in_binary, 
-    "text": original_text, 
-    "key": key1,
-    "resultb": text_encrypted_once_in_binary, 
-    "result": text_encrypted_final_in_hex, 
-    "op": "Šifrēšana"})
+def decrypt(encrypted_text,key1):
 
-def decrypt(request):
-    encrypted_text = request.POST['crtext']
-    key1 = request.POST['key1']
-    key2 = request.POST['key2']
-    key3 = request.POST['key3']
-    encrypted_text_in_binary = np.asarray(list(map(int, format(int(encrypted_text,16), '0>64b'))))
-    key1_in_binary = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
-    key2_in_binary = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
-    key3_in_binary = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
+    encrypted_text_in_bytes = np.asarray(list(map(int, format(int(encrypted_text,16), '0>64b'))))
+    key1_in_bytes = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
 
-    # TODO šeit jāraksta kods
-    text_decrypted_once_in_binary = des(encrypted_text_in_binary, key3_in_binary, 1)
-    text_decrypted_twice_in_binary = des(text_decrypted_once_in_binary, key2_in_binary, 1)
-    text_decrypted_thrice_in_binary = des(text_decrypted_twice_in_binary, key1_in_binary, 1)
+    text_decrypted_once_in_bytes = des(encrypted_text_in_bytes, key1_in_bytes, 1)
 
-    tconv = str(text_decrypted_thrice_in_binary).replace('[', '')
+    tconv = str(text_decrypted_once_in_bytes).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
     text_decrypted_final_in_hex= str(hex(int(tconv, 2))[2:])
-    return render(request, 'result.html', {"textb": encrypted_text_in_binary, "keyb": key1_in_binary, "text": encrypted_text, "key": key1, "resultb": text_decrypted_once_in_binary, "result": text_decrypted_final_in_hex, "op": "Dešifrēšana"})
-
+    print("results")
+    # Atgriežam rezultātus
+    print(text_decrypted_final_in_hex)
+    return text_decrypted_final_in_hex
 # --------------------------- computations
 key_PC1 =  [57, 49, 41, 33, 25, 17,  9,
              1, 58, 50, 42, 34, 26, 18,
@@ -323,3 +288,64 @@ def round(data, key):
     rres[32:64] = r1
 
     return rres
+
+def split_hex_string(hex_string):
+    # Remove any whitespace from the input string
+    hex_string = hex_string.replace(" ", "")
+
+    # Convert the hex string to bytes
+    byte_string = bytes.fromhex(hex_string)
+
+    # Calculate the number of blocks needed
+    block_size = 8
+    num_blocks = (len(byte_string) + block_size - 1) // block_size
+
+    # Pad the byte string if necessary
+    padding_needed = num_blocks * block_size - len(byte_string)
+    if padding_needed > 0:
+        byte_string += bytes([0] * padding_needed)
+
+     # Split the byte string into blocks
+    blocks = [byte_string[i:i+block_size] for i in range(0, len(byte_string), block_size)]
+
+    # Convert each block to a hex string and return the list of hex strings
+    hex_blocks = [block.hex() for block in blocks]
+    return hex_blocks
+
+#This is logic for file input
+
+file_name = sys.argv[1]
+f = open(file_name)
+data = f.read()
+f.close()
+
+#This is logic for choosing encryption or decryption for the file that has been parsed
+print("Type 'en' for encryption or 'de' for decryption")
+izvele = input()
+
+#This is main logic for loading 
+s = ""
+if izvele == "en":
+    if len(data) % 2 == 1: #Make sure that the input text is an even number
+        data += " "
+    data_hex = data.encode('utf-8').hex() #Plain text gets converted to hex
+    blocks_hex = split_hex_string(data_hex) #Hex text gets split into 8byte blocks and put into array
+    for block in blocks_hex: #iterates through each 8 byte hex block
+        print(block)
+        sifrets = encrypt(block, "be4a86a05c7981ca") #Static 8-byte hex keys for debugging
+        s += sifrets
+    f = open("encrypted.txt", "w")
+    f.write(s) #output is hexidecimal and saved to file
+elif izvele == "de":
+    #no conversion for input data to hex as the input data should already be in hexadecimal
+    blocks_hex = split_hex_string(data) #ERROR!!! If parsed string is not 8 byte hexidecimal then error is thrown || ValueError: non-hexadecimal number found in fromhex() arg at position 15
+    for block in blocks_hex:
+        print(block)
+        atsifrets = decrypt(block, "be4a86a05c7981ca") #Static 8-byte hex keys for debugging
+        s += atsifrets
+    f = open("decrypted.txt", "w")
+    f.write(s)
+    print(bytearray.fromhex(s).decode()
+)
+else:
+    print("error")
