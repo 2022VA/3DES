@@ -5,7 +5,7 @@
 2. Have git installed on your computer
 
 3. Clone repository using git
-``` *git clone https://github.com/2022VA/3DES.git* ```
+```git clone https://github.com/2022VA/3DES.git```
 
 # How to use:
 ## FILE ENCRYPTION
