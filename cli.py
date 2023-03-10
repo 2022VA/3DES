@@ -1,37 +1,41 @@
 import numpy as np
 import sys
 
-def encrypt(original_text, key1):
+def encrypt(original_text, key1,key2,key3):
 
     original_text_in_bytes = np.asarray(list(map(int, format(int(original_text,16), '0>64b'))))
     key1_in_bytes = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
+    key2_in_bytes = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
+    key3_in_bytes = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
 
     text_encrypted_once_in_bytes = des(original_text_in_bytes, key1_in_bytes, 0)
-    tconv = str(text_encrypted_once_in_bytes).replace('[', '')
+    text_encrypted_twice_in_bytes = des(text_encrypted_once_in_bytes, key2_in_bytes, 0)
+    text_encrypted_thrice_in_bytes = des(text_encrypted_twice_in_bytes, key3_in_bytes, 0)
+
+    tconv = str(text_encrypted_thrice_in_bytes).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    text_encrypted_final_in_hex = str(hex(int(tconv, 2))[2:])
-    print("results")
+    text_encrypted_final_in_hex = str(hex(int(tconv, 2))[2:].zfill(16))
     # Atgriežam rezultātus
-    print(text_encrypted_final_in_hex)
     return text_encrypted_final_in_hex
 
-def decrypt(encrypted_text,key1):
+def decrypt(encrypted_text,key1,key2,key3):
 
     encrypted_text_in_bytes = np.asarray(list(map(int, format(int(encrypted_text,16), '0>64b'))))
     key1_in_bytes = np.asarray(list(map(int, format(int(key1,16), '0>64b'))))
+    key2_in_bytes = np.asarray(list(map(int, format(int(key2,16), '0>64b'))))
+    key3_in_bytes = np.asarray(list(map(int, format(int(key3,16), '0>64b'))))
 
-    text_decrypted_once_in_bytes = des(encrypted_text_in_bytes, key1_in_bytes, 1)
+    text_decrypted_once_in_bytes = des(encrypted_text_in_bytes, key3_in_bytes, 1)
+    text_decrypted_twice_in_bytes = des(text_decrypted_once_in_bytes, key2_in_bytes, 1)
+    text_decrypted_thrice_in_bytes = des(text_decrypted_twice_in_bytes, key1_in_bytes, 1)
 
-    tconv = str(text_decrypted_once_in_bytes).replace('[', '')
+    tconv = str(text_decrypted_thrice_in_bytes).replace('[', '')
     tconv = tconv.replace(']', '')
     tconv = tconv.replace(' ', '')
     tconv = tconv.replace('\n', '')
-    text_decrypted_final_in_hex= str(hex(int(tconv, 2))[2:])
-    print("results")
-    # Atgriežam rezultātus
-    print(text_decrypted_final_in_hex)
+    text_decrypted_final_in_hex= str(hex(int(tconv, 2))[2:].zfill(16))
     return text_decrypted_final_in_hex
 # --------------------------- computations
 key_PC1 =  [57, 49, 41, 33, 25, 17,  9,
@@ -159,23 +163,16 @@ def des(text, key, dir = 0):
         dn = np.roll(dn,-key_shift[i-1])
         keys[keys_index] = permuted_choice2(cn, dn)
         keys_index += 1
-    #print ("keys:")
-    #print (keys)
-    #print ("----------------")
     data = initial_perm(text) # initial permutation
 
     for i in range(16):
-        #print ("Round: ", i+1)
         if (dir == 0): # encrypt
             data_new = round(data, keys[i])
         else: # decrypt
             data_new = round(data, keys[16-(i+1)])
         data = data_new
-        #print (i)
-        #print (data)
     data = np.roll(data_new, 32)
     after_final_perm = final_perm(data)
-    #print (after_final_perm)
     return after_final_perm
 
 def permutate_key(key):
@@ -212,31 +209,21 @@ def final_perm(text):
     return fi_perm
 
 def xor(a, b):
-    #print (a)
-    #print (b)
     xor_res = np.logical_xor(a, b).astype(int)
-    #print (xor_res)
     return xor_res
 
 def ebit(r):
-    #print(r)
     expanded = np.zeros(48, dtype=int)
     index = 0
     for x in EBit:
         expanded[index] = r[x-1]
         index += 1
-    #print (expanded)
     return expanded
 
 def sbox_parse(data, table):
-    #print ("Pd:", data)
-    #print ("Pt:", table)
     row = data[0]*2+data[5]
-    #print ("Pr:", row)
     column = data[1]*8+data[2]*4+data[3]*2+data[4]
-    #print ("Pc:", column)
     out = SBox[table][row][column]
-    #print ("Po:", out)
     outb = np.asarray(list(map(int, format(out, '0>4b'))))
     return outb
 
@@ -256,37 +243,21 @@ def round_perm(data):
     return res
 
 def rfunction(r0, key):
-    # E-bit
     eb = ebit(r0)
-    # Eout xor key
     postxor = xor(eb, key)
     postsbox = sbox(postxor)
     rfunc_out = round_perm(postsbox)
-    #print("EB   : ", eb)
-    #print("KEY  : ", key)
-    #print("PXOR : ", postxor)
-    #print("PSBOX: ", postsbox)
-    #print("OUT   : ", rfunc_out)
-    # Sbin
-    # Round Permutation
     return rfunc_out
 
 def round(data, key):
     l0 = data[0:32]
     r0 = data[32:64]
-    #print ("L0: ", l0)
-    #print ("R0: ", r0)
-    #print ("Ky: ", key)
     l1 = r0
     fresult = rfunction(r0, key)
-    #print ("Fres: ", fresult)
     r1 = xor(l0, fresult)
-    #print ("L1: ", l1)
-    #print ("R1: ", r1)
     rres = np.zeros(64, dtype=int)
     rres[0:32] = l1
     rres[32:64] = r1
-
     return rres
 
 def split_hex_string(hex_string):
@@ -313,39 +284,44 @@ def split_hex_string(hex_string):
     return hex_blocks
 
 #This is logic for file input
-
 file_name = sys.argv[1]
 f = open(file_name)
 data = f.read()
 f.close()
 
-#This is logic for choosing encryption or decryption for the file that has been parsed
+#This is logic for choosing encryption or decryption for the file that has been parsed, and inputting secret keys
 print("Type 'en' for encryption or 'de' for decryption")
-izvele = input()
+choice = input()
+print("insert key1") #0d2f098a3bddcbaf
+key1 = input()
+print("insert key2") #060fb20dc4f5ef98
+key2 = input()
+print("insert key3") #284589cb8de5a1f2
+key3 = input()
 
-#This is main logic for loading 
-s = ""
-if izvele == "en":
-    if len(data) % 2 == 1: #Make sure that the input text is an even number
-        data += " "
+#This is main logic for loading
+text = str()
+if choice == "en":
     data_hex = data.encode('utf-8').hex() #Plain text gets converted to hex
     blocks_hex = split_hex_string(data_hex) #Hex text gets split into 8byte blocks and put into array
     for block in blocks_hex: #iterates through each 8 byte hex block
-        print(block)
-        sifrets = encrypt(block, "be4a86a05c7981ca") #Static 8-byte hex keys for debugging
-        s += sifrets
+        encrypted_block = encrypt(block, key1, key2, key3) #Static 8-byte hex keys for debugging
+        text += encrypted_block
     f = open("encrypted.txt", "w")
-    f.write(s) #output is hexidecimal and saved to file
-elif izvele == "de":
+    print(text)
+    f.write(text) #output is hexidecimal and saved to file
+elif choice == "de":
     #no conversion for input data to hex as the input data should already be in hexadecimal
-    blocks_hex = split_hex_string(data) #ERROR!!! If parsed string is not 8 byte hexidecimal then error is thrown || ValueError: non-hexadecimal number found in fromhex() arg at position 15
+    blocks_hex = split_hex_string(data) #Hex text gets split into 8byte blocks and put into array
     for block in blocks_hex:
-        print(block)
-        atsifrets = decrypt(block, "be4a86a05c7981ca") #Static 8-byte hex keys for debugging
-        s += atsifrets
+        decrypted_block = decrypt(block, key1, key2, key3) #Static 8-byte hex keys for debugging
+        text += decrypted_block
     f = open("decrypted.txt", "w")
-    f.write(s)
-    print(bytearray.fromhex(s).decode()
-)
+    try: #try to decode to ASCII but leave as hex if an error encountered
+        text=bytearray.fromhex(text).decode()
+    except UnicodeDecodeError:
+        text = text
+    f.write(text)
+    print(text)
 else:
-    print("error")
+    print("incorrect input")
